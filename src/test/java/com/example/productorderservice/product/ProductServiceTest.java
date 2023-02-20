@@ -1,44 +1,29 @@
 package com.example.productorderservice.product;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest
 class ProductServiceTest {
 
+    @Autowired
     private ProductService productService;
-    private StubProductPort productPort = new StubProductPort();
-
-    @BeforeEach
-    void setUp() {
-        productService = new ProductService(productPort);
-    }
 
     @Test
     void 상품수정() {
+        productService.addProduct(ProductSteps.상품등록요청_생성());
         final Long productId = 1L;
-        final UpdateProductRequest request = new UpdateProductRequest("상품 수정", 2000, DiscountPolicy.NONE);
-        Product product = new Product("상품명", 1000, DiscountPolicy.NONE);
-        productPort.getProduct_will_return = product;
+        final UpdateProductRequest request = ProductSteps.상품수정요청_생성();
 
         productService.updateProduct(productId, request);
 
-        assertThat(product.getName()).isEqualTo("상품 수정");
-        assertThat(product.getPrice()).isEqualTo(2000);
-    }
-
-    private static class StubProductPort implements ProductPort {
-        private Product getProduct_will_return;
-
-        @Override
-        public void save(Product product) {
-
-        }
-
-        @Override
-        public Product getProduct(long productId) {
-            return getProduct_will_return;
-        }
+        final ResponseEntity<GetProductResponse> response = productService.getProduct(productId);
+        final GetProductResponse productResponse = response.getBody();
+        assertThat(productResponse.name()).isEqualTo("상품 수정");
+        assertThat(productResponse.price()).isEqualTo(2000);
     }
 }
